@@ -1,0 +1,22 @@
+sudo required
+services:
+  - docker
+
+before_install:
+  - docker build -t sivra/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true sivra/react-test npm test
+
+afer_success:
+  - docker build -t sivra/multi-client ./client
+  - docker build -t sivra/multi-nginx ./nginx
+  - docker build -t sivra/multi-server ./server
+  - docker build -t sivra/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push sivra/multi-client
+  - docker push sivra/multi-nginx
+  - docker push sivra/multi-server
+  - docker push sivra/multi-worker
